@@ -1,40 +1,70 @@
+
 import vtkmodules.all as vtk
 import numpy as np
 import socket
 import struct
 import time
+import pickle
 
-# Create a socket
+# Get user input for server's IP address and port
+server_ip = input("Enter the server IP address: ")
+server_port = int(input("Enter the server port number: "))
+server_address = (server_ip, server_port)
+
+# Create a TCP/IP socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Connect to the server
-server_address = ('172.23.151.79', 5566)  # Replace 'server_ip' with the actual server IP
+# Connect the socket to the server's address and port
 client_socket.connect(server_address)
 
-# Receive the data as a 2D array
-for t in range(1,10):
+# # Receive the number of time steps
+num_steps_bytes = client_socket.recv(4)
+num_steps = struct.unpack('!I', num_steps_bytes)[0]
 
-    data_shape = (64, 64)
+NX_bytes = client_socket.recv(4)
+NX = struct.unpack('!I', NX_bytes)[0]
+
+NY_bytes = client_socket.recv(4)
+NY = struct.unpack('!I', NY_bytes)[0]
+
+client_socket.close()
+print("Client socket closed!")
+
+
+# Receive the data for each time step
+for t in range(1,num_steps + 1):
+
+    data_shape = (NX, NY)
     data = np.empty(data_shape)
-    for row in range(data_shape[0]):
-        for col in range(data_shape[1]):
-            # Receive the length of the double in bytes
-            len_bytes = client_socket.recv(4)
-            value_len = struct.unpack('I', len_bytes)[0]  # Unpack as unsigned int
 
-            # Receive the double value based on the length received
-            double_bytes = client_socket.recv(8)
-            double_value = struct.unpack('d', double_bytes)[0]
-            data[row, col] = double_value
-    
-    time.sleep(1)
+    # Receive the data
+    data_bytes = b''
+    # Create a TCP/IP socket
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Send a response to the server indicating that the client is ready for the next time step
-    response = "Ready for next time-step"
-    client_socket.sendall(response.encode('utf-8'))
+    # Connect the socket to the server's address and port
+    client_socket.connect(server_address)
 
-    # Wait for the next data
-    input("Press Enter to continue to the next time step...")
+    begin = time.time()
+    while True:
+        chunk = client_socket.recv(4096)
+        if not chunk:
+            break
+        data_bytes += chunk
+
+    # Deserialize the bytes to a NumPy array
+    received_array = np.frombuffer(data_bytes, dtype=np.float64).reshape((NX, NY))  # Adjust the shape accordingly
+
+    # Print the received array
+    print("Received Array:")
+    print(received_array)
+
+    # Close the connection
+    client_socket.close()
+    print("Client socket closed!")
+
+
+    data=received_array
            
     # Define the scalar range for the pseudocolor mapping
     # if t==1:
@@ -103,10 +133,11 @@ for t in range(1,10):
 
     # Start the interaction
     render_window_interactor.Start()
+    end = time.time()
 
     # Display "Visualisation complete" for the current time step
-    print("Visualisation complete for time-step {}".format(t))
+    print("Visualisation complete for time-step: {}".format(t))
+    print("Time taken to complete entire process: {} seconds".format(end - begin))
 
-    
-
-client_socket.close()
+    # Wait for the next data
+    input("Press Enter to continue to the next time step...")
