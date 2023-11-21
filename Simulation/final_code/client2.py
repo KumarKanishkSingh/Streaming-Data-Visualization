@@ -1,4 +1,3 @@
-
 import vtkmodules.all as vtk
 import numpy as np
 import socket
@@ -29,6 +28,7 @@ NY = struct.unpack('!I', NY_bytes)[0]
 
 client_socket.close()
 print("Client socket closed!")
+time.sleep(1)
 
 
 # Receive the data for each time step
@@ -56,12 +56,13 @@ for t in range(1,num_steps + 1):
     received_array = np.frombuffer(data_bytes, dtype=np.float64).reshape((NX, NY))  # Adjust the shape accordingly
 
     # Print the received array
-    print("Received Array:")
-    print(received_array)
+    # print("Received Array:")
+    # print(received_array)
 
     # Close the connection
     client_socket.close()
     print("Client socket closed!")
+    time.sleep(1)
 
 
     data=received_array

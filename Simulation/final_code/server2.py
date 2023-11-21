@@ -6,8 +6,6 @@ import numpy as np
 from mpi4py import MPI
 import os
 
-# NX = 64
-# NY = 64
 DT = 60.0  # Time step in seconds
 DX = 1000.0  # Spatial step in meters
 U0 = 10.0  # Initial horizontal wind velocity (m/s)
@@ -15,7 +13,6 @@ V0 = 5.0  # Initial vertical wind velocity (m/s)
 KX = 0.00001  # Diffusion coefficient for X-direction
 KY = 0.00001  # Diffusion coefficient for Y-direction
 KZ = 0.00001  # Diffusion coefficient for Z-direction
-
 
 def initializeField(field, numSteps, NX, NY):
     for t in range(numSteps):
