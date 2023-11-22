@@ -51,7 +51,7 @@ for t in range(1,num_steps + 1):
         if not chunk:
             break
         data_bytes += chunk
-
+    
     # Deserialize the bytes to a NumPy array
     received_array = np.frombuffer(data_bytes, dtype=np.float64).reshape((NX, NY))  # Adjust the shape accordingly
 
@@ -131,10 +131,10 @@ for t in range(1,num_steps + 1):
 
     # Render the scene
     render_window.Render()
+    end = time.time()
 
     # Start the interaction
     render_window_interactor.Start()
-    end = time.time()
 
     # Display "Visualisation complete" for the current time step
     print("Visualisation complete for time-step: {}".format(t))
