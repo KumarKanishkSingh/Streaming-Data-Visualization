@@ -106,7 +106,7 @@ for time_step in range(numSteps):
     # Update the scalar data for the grid
     grid.GetPointData().SetScalars(scalar_data)
 
-    time.sleep(1)
+    # time.sleep(1)
 
     # Render the scene
     render_window.Render()

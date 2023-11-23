@@ -128,9 +128,9 @@ def main():
     # Accept a connection
     connection, client_address = server_socket.accept()
     print("Connection from", client_address)
-    numSteps_bytes = numSteps.to_bytes(4)
-    NX_bytes = NX.to_bytes(4)
-    NY_bytes = NY.to_bytes(4)
+    numSteps_bytes = numSteps.to_bytes(4, byteorder= 'big')
+    NX_bytes = NX.to_bytes(4, byteorder= 'big')
+    NY_bytes = NY.to_bytes(4 , byteorder= 'big')
 
     connection.sendall(numSteps_bytes)
     connection.sendall(NX_bytes)
@@ -157,7 +157,7 @@ def main():
         # print("Total time to create and send ({}*{}) 2D array for {} time steps is {} and {} seconds.".format(NX, NY, numSteps, tt_create_data, tt_sending_data))
 
 
-if __name__ == "__main__":
+if __name__ == "__main+__":
     main()
 
     # tcp connection created and connected to client
@@ -181,6 +181,4 @@ if __name__ == "__main__":
 
     connection.close()  
     server_socket.close()
-    print("Total time to create, send-receive and visualize ({}*{}) 2D array for {} time steps is {},{} and {} seconds.".format(NX, NY, numSteps, tt_create_data, tt_sending_data + tt_getting_data_client, tt_visualize_data_client))
-
-    
+    print("Total time to create, send-receive and visualize ({}*{}) 2D array for {} time steps is {}, {} and {} seconds.".format(NX, NY, numSteps, tt_create_data, tt_sending_data + tt_getting_data_client, tt_visualize_data_client))

@@ -19,6 +19,7 @@ KZ = 0.00001  # Diffusion coefficient for Z-direction
 # aims to get total time for creating and broadcasting data for all timesteps specified
 tt_creating_data = 0
 tt_broadcasting_data = 0
+t1 = 0
 
 
 def initialize_field(num_steps, NX, NY):
@@ -27,7 +28,9 @@ def initialize_field(num_steps, NX, NY):
     return field
 
 
-def write_field_to_netcdf(field, num_steps, NX, NY, tt_creating_data, tt_broadcasting_data):
+def write_field_to_netcdf(field, num_steps, NX, NY):
+    global tt_broadcasting_data, tt_creating_data
+    begin = time.time()
     filename = "output.nc"
     with Dataset(filename, "w") as ncfile:
         ncfile.createDimension("time", num_steps)
@@ -39,6 +42,9 @@ def write_field_to_netcdf(field, num_steps, NX, NY, tt_creating_data, tt_broadca
 
         # Add the times to the NetCDF file
         ncfile.createVariable("tt_creating_data", "f8").assignValue(tt_creating_data)
+        end = time.time()
+
+        tt_broadcasting_data = tt_broadcasting_data + end - begin
         ncfile.createVariable("tt_broadcasting_data", "f8").assignValue(tt_broadcasting_data)
 
 
@@ -68,7 +74,7 @@ def simulate_weather(field, num_steps, NX, NY):
     tt_creating_data = end - begin
 
     # Write the field and times to NetCDF
-    write_field_to_netcdf(temp_field, num_steps, NX, NY, tt_creating_data, tt_broadcasting_data)
+    write_field_to_netcdf(temp_field, num_steps, NX, NY)
 
 
 def main():
@@ -96,11 +102,11 @@ def main():
     else:
         field = np.empty((num_steps, NX, NY), dtype=np.float64)
 
-    begin = time.time()
+    # begin = time.time()
     # Broadcast the initial field to all processes
     comm.Bcast(field, root=0)
-    end = time.time()
-    tt_broadcasting_data = end - begin
+    # end = time.time()
+    # tt_broadcasting_data = end - begin
     
     # begin = time.time()
     simulate_weather(field, num_steps, NX, NY)
