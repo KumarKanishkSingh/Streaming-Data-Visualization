@@ -66,7 +66,7 @@ def simulateWeather(field, rank, num_processes, numSteps, server_address, NX, NY
             server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server_socket.bind(server_address)
             end = time.time()
-            tt_sending_data = end - begin
+            tt_sending_data = tt_sending_data + end - begin
 
             # Listen for incoming connections
             server_socket.listen(1)
@@ -157,7 +157,7 @@ def main():
         # print("Total time to create and send ({}*{}) 2D array for {} time steps is {} and {} seconds.".format(NX, NY, numSteps, tt_create_data, tt_sending_data))
 
 
-if __name__ == "__main+__":
+if __name__ == "__main__":
     main()
 
     # tcp connection created and connected to client

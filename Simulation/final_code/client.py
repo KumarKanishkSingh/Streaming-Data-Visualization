@@ -5,16 +5,19 @@ import struct
 import time
 import pickle
 import time
+import os
 
 tt_getting_data = 0
 tt_visualize_data = 0
+
+# big_DATA = 
 
 
 # Get user input for server's IP address and port
 server_ip = input("Enter the server IP address: ")
 server_port = int(input("Enter the server port number: "))
 
-begin = time.time()
+# begin = time.time()
 server_address = (server_ip, server_port)
 
 # Create a TCP/IP socket
@@ -23,6 +26,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Connect the socket to the server's address and port
 client_socket.connect(server_address)
 
+begin = time.time()
 # # Receive the number of time steps
 num_steps_bytes = client_socket.recv(4)
 num_steps = struct.unpack('!I', num_steps_bytes)[0]
@@ -37,7 +41,16 @@ client_socket.close()
 print("Client socket closed!")
 # time.sleep(1)
 end = time.time()
-tt_getting_data = end - begin
+tt_getting_data = tt_getting_data + end - begin
+
+# Create a directory to store the visualization pictures
+output_directory = "visualization_pics"
+os.makedirs(output_directory, exist_ok=True)
+
+# List to store paths of saved images
+saved_images = []
+
+
 # print("tt_getting_data {}".format(tt_getting_data))
 
 # Receive the data for each time step
@@ -145,18 +158,31 @@ for t in range(1,num_steps + 1):
     # Render the scene
     render_window.Render()
     end = time.time()
+
+    # Capture and save the image for this time step (you can save it as an image file)
+    screenshotter = vtk.vtkWindowToImageFilter()
+    screenshotter.SetInput(render_window)
+    screenshotter.Update()
+
+    writer = vtk.vtkPNGWriter()
+    writer.SetFileName(f"visualization_pics/{t:04d}.png")  # Save as PNG files with a zero-padded time step
+    writer.SetInputConnection(screenshotter.GetOutputPort())
+    writer.Write()
+
     tt_visualize_data = tt_visualize_data + end - begin
 
-    # Start the interaction
-    render_window_interactor.Start()
+    # # Start the interaction
+    # render_window_interactor.Start()
 
     # Display "Visualisation complete" for the current time step
     print("Visualisation complete for time-step: {}".format(t))
+    time.sleep(0.1)
     # print("Time taken to complete entire process: {} seconds".format(end - begin))
 
     if t != num_steps :
         # Wait for the next data
-        input("Press Enter to continue to the next time step...")
+        # input("Press Enter to continue to the next time step...")
+        continue
     else:
         print("Visualization complete for all time steps!")
         # print("Time taken to receive and visualize ({}*{}) 2D array for {} time steps is {} and {} seconds".format(NX, NY, num_steps, tt_getting_data, tt_visualize_data))
@@ -174,3 +200,5 @@ for t in range(1,num_steps + 1):
         client_socket.sendall(tt_visualize_data_bytes)
         # Close the connection
         client_socket.close()
+# Start the interaction
+render_window_interactor.Start()
