@@ -7,11 +7,6 @@ tt_visualizing_data = 0
 tt_creating_data = 0
 tt_broadcasting_data = 0
 
-# Load the NetCDF data
-# ncfile = netCDF4.Dataset("output.nc", "r")
-
-# Access tt_creating_data and tt_broadcasting_data from the NetCDF file
-
 
 begin = time.time()
 # Load the NetCDF data

@@ -4,10 +4,17 @@ import socket
 import struct
 import time
 import pickle
+import time
+
+tt_getting_data = 0
+tt_visualize_data = 0
+
 
 # Get user input for server's IP address and port
 server_ip = input("Enter the server IP address: ")
 server_port = int(input("Enter the server port number: "))
+
+begin = time.time()
 server_address = (server_ip, server_port)
 
 # Create a TCP/IP socket
@@ -28,8 +35,10 @@ NY = struct.unpack('!I', NY_bytes)[0]
 
 client_socket.close()
 print("Client socket closed!")
-time.sleep(1)
-
+# time.sleep(1)
+end = time.time()
+tt_getting_data = end - begin
+# print("tt_getting_data {}".format(tt_getting_data))
 
 # Receive the data for each time step
 for t in range(1,num_steps + 1):
@@ -39,15 +48,17 @@ for t in range(1,num_steps + 1):
 
     # Receive the data
     data_bytes = b''
+
+    begin = time.time()
     # Create a TCP/IP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the server's address and port
     client_socket.connect(server_address)
 
-    begin = time.time()
+    # begin = time.time()
     while True:
-        chunk = client_socket.recv(4096)
+        chunk = client_socket.recv(NX*NY)
         if not chunk:
             break
         data_bytes += chunk
@@ -62,8 +73,9 @@ for t in range(1,num_steps + 1):
     # Close the connection
     client_socket.close()
     print("Client socket closed!")
-    time.sleep(1)
-
+    # time.sleep(1)
+    end = time.time()
+    tt_getting_data = tt_getting_data + end - begin
 
     data=received_array
            
@@ -72,6 +84,7 @@ for t in range(1,num_steps + 1):
     min_value = data.min()
     max_value = data.max()
 
+    begin = time.time()
     # Create a VTK renderer and render window
     renderer = vtk.vtkRenderer()
     render_window = vtk.vtkRenderWindow()
@@ -132,13 +145,32 @@ for t in range(1,num_steps + 1):
     # Render the scene
     render_window.Render()
     end = time.time()
+    tt_visualize_data = tt_visualize_data + end - begin
 
     # Start the interaction
     render_window_interactor.Start()
 
     # Display "Visualisation complete" for the current time step
     print("Visualisation complete for time-step: {}".format(t))
-    print("Time taken to complete entire process: {} seconds".format(end - begin))
+    # print("Time taken to complete entire process: {} seconds".format(end - begin))
 
-    # Wait for the next data
-    input("Press Enter to continue to the next time step...")
+    if t != num_steps :
+        # Wait for the next data
+        input("Press Enter to continue to the next time step...")
+    else:
+        print("Visualization complete for all time steps!")
+        # print("Time taken to receive and visualize ({}*{}) 2D array for {} time steps is {} and {} seconds".format(NX, NY, num_steps, tt_getting_data, tt_visualize_data))
+
+        # time.sleep(1)
+
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the server's address and port
+        client_socket.connect(server_address)
+
+        tt_getting_data_bytes = struct.pack('d', tt_getting_data)
+        tt_visualize_data_bytes = struct.pack('d', tt_visualize_data)
+
+        client_socket.sendall(tt_getting_data_bytes)
+        client_socket.sendall(tt_visualize_data_bytes)
+        # Close the connection
+        client_socket.close()
